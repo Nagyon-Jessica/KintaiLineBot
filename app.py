@@ -1,8 +1,10 @@
 import os
+
 from flask import Flask, abort, request
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
-from linebot.models import MessageEvent, TextMessage, TextSendMessage
+from linebot.models import (ButtonsTemplate, MessageEvent, PostbackAction,
+                            TemplateSendMessage, TextMessage)
 
 app = Flask(__name__)
 
@@ -26,7 +28,7 @@ def callback():
 
     # get request body as text
     body = request.get_data(as_text=True)
-    app.logger.info("Request body: " + body)
+    print("Request body: " + body)
 
     # handle webhook body
     try:
@@ -40,9 +42,29 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
+    buttons_template_message = TemplateSendMessage(
+        alt_text='勤務を開始します！',
+        template=ButtonsTemplate(
+            title='出勤',
+            text='選択してください！',
+            actions=[
+                PostbackAction(
+                    label='attend',
+                    display_text='出勤',
+                    data='action=attend&manual=false'
+                ),
+                PostbackAction(
+                    label='attend_by_hand',
+                    display_text='出勤（手入力）',
+                    data='action=buy&manual=true'
+                )
+            ]
+        )
+    )
+
     line_bot_api.reply_message(
         event.reply_token,
-        TextSendMessage(text=event.message.text))
+        buttons_template_message)
 
 
 if __name__ == "__main__":
