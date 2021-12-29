@@ -8,7 +8,7 @@ from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import (ButtonsTemplate, DatetimePickerAction,
                             MessageEvent, PostbackEvent, TemplateSendMessage,
-                            TextMessage)
+                            TextMessage, TextSendMessage)
 
 from templates import ATTEND_TEMPLATE, ATTEND_TIME_ACTION, LOCATION_TEMPLATE
 
@@ -65,7 +65,8 @@ def handle_postback(event):
     data = event.postback.data
     user_id = event.source.user_id
     params = parse_qs(data)
-    if params['action'][0] == "attend":
+    action = params['action'][0]
+    if action == "attend":
         if params['manual'][0] == "false":
             r.hset(f'{user_id}_attend', 'manual', 'true')
             buttons_template_message = LOCATION_TEMPLATE
@@ -78,6 +79,10 @@ def handle_postback(event):
                     actions=[ATTEND_TIME_ACTION]
                 )
             )
+    elif action == "locate":
+        location = params['location'][0]
+        r.hset(f'{user_id}_attend', 'location', location)
+
     line_bot_api.reply_message(
         event.reply_token,
         buttons_template_message)

@@ -1,23 +1,25 @@
 from linebot.models import (ButtonsTemplate, DatetimePickerAction,
-                            MessageEvent, PostbackAction, PostbackEvent,
-                            TemplateSendMessage, TextMessage)
+                            PostbackAction, QuickReply, QuickReplyButton,
+                            TemplateSendMessage, TextSendMessage)
 
-ATTEND_TEMPLATE = TemplateSendMessage(
-        alt_text='勤務を開始します！',
-        template=ButtonsTemplate(
-            title='出勤',
-            text='選択してください！',
-            actions=[
-                PostbackAction(
-                    label='出勤',
-                    display_text='出勤',
-                    data='action=attend&manual=false'
+ATTEND_TEMPLATE = TextSendMessage(
+        text='勤務を開始します！選択してください！',
+        quick_reply=QuickReply(
+            items=[
+                QuickReplyButton(
+                    action=PostbackAction(
+                        label='出勤',
+                        display_text='出勤',
+                        data='action=attend&manual=false'
+                    )
                 ),
-                PostbackAction(
-                    label='出勤（手入力）',
-                    display_text='出勤（手入力）',
-                    data='action=attend&manual=true'
-                )
+                QuickReplyButton(
+                    action=PostbackAction(
+                        label='出勤（手入力）',
+                        display_text='出勤（手入力）',
+                        data='action=attend&manual=true'
+                    )
+                ),
             ]
         )
     )
