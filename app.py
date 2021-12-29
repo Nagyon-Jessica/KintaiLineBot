@@ -69,13 +69,19 @@ def handle_postback(event):
     action = params['action'][0]
     if action == "attend":
         if params['manual'][0] == "false":
-            r.hset(key, 'manual', 'true')
+            r.hset(key, 'manual', 'false')
             message = LOCATION_TEMPLATE
         else:
+            r.hset(key, 'manual', 'true')
             message = TextSendMessage(
                 text='出勤時刻を入力してください！',
                 quick_reply=ATTEND_TIME_TEMPLATE
             )
+    elif action == "time":
+        time = event.postback.params['time']
+        if params['type'][0] == "attend":
+            r.hset(key, 'time', time)
+            message = LOCATION_TEMPLATE
     elif action == "locate":
         location = params['location'][0]
         r.hset(key, 'location', location)
