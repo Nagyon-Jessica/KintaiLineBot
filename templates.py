@@ -1,5 +1,6 @@
-from linebot.models import (ButtonsTemplate, MessageEvent, PostbackAction,
-                            PostbackEvent, TemplateSendMessage, TextMessage)
+from linebot.models import (ButtonsTemplate, DatetimePickerAction,
+                            MessageEvent, PostbackAction, PostbackEvent,
+                            TemplateSendMessage, TextMessage)
 
 ATTEND_TEMPLATE = TemplateSendMessage(
         alt_text='勤務を開始します！',
@@ -15,7 +16,7 @@ ATTEND_TEMPLATE = TemplateSendMessage(
                 PostbackAction(
                     label='出勤（手入力）',
                     display_text='出勤（手入力）',
-                    data='action=buy&manual=true'
+                    data='action=attend&manual=true'
                 )
             ]
         )
@@ -45,3 +46,10 @@ LOCATION_TEMPLATE = TemplateSendMessage(
             ]
         )
     )
+
+ATTEND_TIME_ACTION = DatetimePickerAction(
+    label='時刻を選択',
+    data='action=time&type=attend',
+    mode='time',
+    initial='10:00'
+)

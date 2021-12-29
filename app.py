@@ -1,13 +1,15 @@
 import json
 import os
+from urllib.parse import parse_qs
 
 from flask import Flask, abort, request
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
-from linebot.models import (ButtonsTemplate, MessageEvent, PostbackAction,
-                            PostbackEvent, TemplateSendMessage, TextMessage)
+from linebot.models import (ButtonsTemplate, DatetimePickerAction,
+                            MessageEvent, PostbackEvent, TemplateSendMessage,
+                            TextMessage)
 
-from templates import ATTEND_TEMPLATE, LOCATION_TEMPLATE
+from templates import ATTEND_TEMPLATE, ATTEND_TIME_ACTION, LOCATION_TEMPLATE
 
 app = Flask(__name__)
 
@@ -34,7 +36,6 @@ def callback():
     body = request.get_data(as_text=True)
     body_dict = json.loads(body)
     print(f"Request body: {body}")
-    print(f"params: {request.args}")
 
     send_user = body_dict['events'][0]['source']['userId']
     if send_user not in ALLOWED_USERS:
@@ -59,8 +60,20 @@ def handle_message(event):
 
 @handler.add(PostbackEvent)
 def handle_postback(event):
-    print(f"data: {event.postback.data}")
-    buttons_template_message = LOCATION_TEMPLATE
+    data = event.postback.data
+    params = parse_qs(data)
+    if params['action'][0] == "attend":
+        if params['manual'][0] == "false":
+            buttons_template_message = LOCATION_TEMPLATE
+        else:
+            buttons_template_message = TemplateSendMessage(
+                alt_text='出勤時刻を入力してください！',
+                template=ButtonsTemplate(
+                    title='出勤時刻登録',
+                    text='選択してください！',
+                    actions=[ATTEND_TIME_ACTION]
+                )
+            )
     line_bot_api.reply_message(
         event.reply_token,
         buttons_template_message)
