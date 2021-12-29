@@ -66,7 +66,7 @@ ATTEND_TIME_TEMPLATE = QuickReply(
 )
 
 CHECKOUT_TEMPLATE = TextSendMessage(
-    text='退勤します！選択してください！',
+    text='打刻が完了しました！\n退勤時は下のボタンを選択してください！',
     quick_reply=QuickReply(
         items=[
             QuickReplyButton(
