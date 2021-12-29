@@ -1,16 +1,15 @@
 import json
 import os
-import redis
 from urllib.parse import parse_qs
 
+import redis
 from flask import Flask, abort, request
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
-from linebot.models import (ButtonsTemplate, DatetimePickerAction,
-                            MessageEvent, PostbackEvent, TemplateSendMessage,
-                            TextMessage, TextSendMessage)
+from linebot.models import (MessageEvent, PostbackEvent, TextMessage,
+                            TextSendMessage)
 
-from templates import ATTEND_TEMPLATE, ATTEND_TIME_ACTION, LOCATION_TEMPLATE
+from templates import ATTEND_TEMPLATE, ATTEND_TIME_TEMPLATE, LOCATION_TEMPLATE
 
 app = Flask(__name__)
 r = redis.from_url(os.environ.get("REDIS_URL"))
@@ -71,13 +70,9 @@ def handle_postback(event):
             r.hset(f'{user_id}_attend', 'manual', 'true')
             buttons_template_message = LOCATION_TEMPLATE
         else:
-            buttons_template_message = TemplateSendMessage(
-                alt_text='出勤時刻を入力してください！',
-                template=ButtonsTemplate(
-                    title='出勤時刻登録',
-                    text='選択してください！',
-                    actions=[ATTEND_TIME_ACTION]
-                )
+            buttons_template_message = TextSendMessage(
+                text='出勤時刻を入力してください！',
+                quick_reply=ATTEND_TIME_TEMPLATE
             )
     elif action == "locate":
         location = params['location'][0]

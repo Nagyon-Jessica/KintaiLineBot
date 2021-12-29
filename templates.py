@@ -1,6 +1,5 @@
-from linebot.models import (ButtonsTemplate, DatetimePickerAction,
-                            PostbackAction, QuickReply, QuickReplyButton,
-                            TemplateSendMessage, TextSendMessage)
+from linebot.models import (DatetimePickerAction, PostbackAction, QuickReply,
+                            QuickReplyButton, TextSendMessage)
 
 ATTEND_TEMPLATE = TextSendMessage(
         text='勤務を開始します！選択してください！',
@@ -24,34 +23,44 @@ ATTEND_TEMPLATE = TextSendMessage(
         )
     )
 
-LOCATION_TEMPLATE = TemplateSendMessage(
-        alt_text='勤務場所を登録します！',
-        template=ButtonsTemplate(
-            title='勤務場所登録',
-            text='選択してください！',
-            actions=[
-                PostbackAction(
-                    label='出社',
-                    display_text='出社',
-                    data='action=locate&location=office'
+LOCATION_TEMPLATE = TextSendMessage(
+        text='勤務場所を登録します！選択してください！',
+        quick_reply=QuickReply(
+            items=[
+                QuickReplyButton(
+                    action=PostbackAction(
+                        label='出社',
+                        display_text='出社',
+                        data='action=locate&location=office'
+                    )
                 ),
-                PostbackAction(
-                    label='在宅勤務',
-                    display_text='在宅勤務',
-                    data='action=locate&location=fullremote'
+                QuickReplyButton(
+                    action=PostbackAction(
+                        label='在宅勤務',
+                        display_text='在宅勤務',
+                        data='action=locate&location=fullremote'
+                    )
                 ),
-                PostbackAction(
-                    label='在宅勤務4h未満',
-                    display_text='在宅勤務4h未満',
-                    data='action=locate&location=remotelt4h'
+                QuickReplyButton(
+                    action=PostbackAction(
+                        label='在宅勤務4h未満',
+                        display_text='在宅勤務4h未満',
+                        data='action=locate&location=remotelt4h'
+                    )
                 )
             ]
         )
     )
 
-ATTEND_TIME_ACTION = DatetimePickerAction(
-    label='時刻を選択',
-    data='action=time&type=attend',
-    mode='time',
-    initial='10:00'
-)
+ATTEND_TIME_TEMPLATE = QuickReply(
+        items=[
+            QuickReplyButton(
+                action=DatetimePickerAction(
+                    label='時刻を選択',
+                    data='action=time&type=attend',
+                    mode='time',
+                    initial='10:00'
+                )
+            )
+        ]
+    )
