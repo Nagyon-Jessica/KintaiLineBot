@@ -58,12 +58,12 @@ def handle_message(event):
             actions=[
                 PostbackAction(
                     label='出勤',
-                    display_text='attend',
+                    display_text='出勤',
                     data='action=attend&manual=false'
                 ),
                 PostbackAction(
                     label='出勤（手入力）',
-                    display_text='attend_by_hand',
+                    display_text='出勤（手入力）',
                     data='action=buy&manual=true'
                 )
             ]
