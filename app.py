@@ -1,3 +1,4 @@
+import json
 import os
 
 from flask import Flask, abort, request
@@ -29,10 +30,11 @@ def callback():
 
     # get request body as text
     body = request.get_data(as_text=True)
-    print("Request body: " + body)
+    body_dict = json.loads(body)
+    print(f"Request body: {body}")
     print(f"params: {request.args}")
 
-    send_user = body['events'][0]['source']['userId']
+    send_user = body_dict['events'][0]['source']['userId']
     if send_user not in ALLOWED_USERS:
         print("Invalid access from the user {send_user}.")
         abort(400)
