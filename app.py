@@ -1,5 +1,6 @@
 import json
 import os
+import redis
 from urllib.parse import parse_qs
 
 from flask import Flask, abort, request
@@ -12,6 +13,7 @@ from linebot.models import (ButtonsTemplate, DatetimePickerAction,
 from templates import ATTEND_TEMPLATE, ATTEND_TIME_ACTION, LOCATION_TEMPLATE
 
 app = Flask(__name__)
+r = redis.from_url(os.environ.get("REDIS_URL"))
 
 #環境変数取得
 YOUR_CHANNEL_ACCESS_TOKEN = os.environ["YOUR_CHANNEL_ACCESS_TOKEN"]
@@ -61,9 +63,11 @@ def handle_message(event):
 @handler.add(PostbackEvent)
 def handle_postback(event):
     data = event.postback.data
+    user_id = event.source.user_id
     params = parse_qs(data)
     if params['action'][0] == "attend":
         if params['manual'][0] == "false":
+            r.hset(f'{user_id}_attend', 'manual', 'true')
             buttons_template_message = LOCATION_TEMPLATE
         else:
             buttons_template_message = TemplateSendMessage(
