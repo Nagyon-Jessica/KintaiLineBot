@@ -56,16 +56,6 @@ def login(driver, is_yagao):
         driver.find_element(by=By.ID, value='password').send_keys(PW_KONB)
     driver.find_element(by=By.ID, value='Login').submit()
     print("Submit!")
-
-    # 操作可能になるまで待機
-    wait = WebDriverWait(driver, 30)
-    try:
-        wait.until(
-            EC.presence_of_element_located((By.ID, "workLocationButton1"))
-        )
-    except Exception as e:
-        print(e)
-    print("Login!")
     return
 
 def stamp(driver, is_attend, location=None):
@@ -75,8 +65,22 @@ def stamp(driver, is_attend, location=None):
     :param bool is_attend: Trueなら出勤，Flaseなら退勤
     :param str location: 1=出社, 2=在宅勤務, 3=在宅勤務4h未満
     """
+    # iframeが表示されるまで待機
+    wait = WebDriverWait(driver, 30)
+    wait.until(
+        EC.presence_of_element_located((By.TAG_NAME, "iframe"))
+    )
+    iframe = driver.find_element(by=By.TAG_NAME, value='iframe')
+    driver.switch_to.frame(iframe)
+    wait.until(
+        EC.element_to_be_clickable((By.XPATH, f"//label[@for='workLocationButton{location}']"))
+    )
+
     if is_attend:
-        driver.find_element(by=By.ID, value=f'workLocationButton{location}').click()
+        driver.find_element(by=By.XPATH, value=f"//label[@for='workLocationButton{location}']").click()
+        wait.until(
+            EC.element_to_be_clickable((By.ID, "btnStInput"))
+        )
         driver.find_element(by=By.ID, value='btnStInput').click()
     return
 
