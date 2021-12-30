@@ -11,6 +11,7 @@ from linebot.models import (MessageEvent, PostbackEvent, TextMessage,
 
 from templates import (ATTEND_TEMPLATE, ATTEND_TIME_TEMPLATE,
                        CHECKOUT_TEMPLATE, LOCATION_TEMPLATE)
+from utils import attend
 
 app = Flask(__name__)
 r = redis.from_url(os.environ.get("REDIS_URL"))
@@ -86,6 +87,8 @@ def handle_postback(event):
         location = params['location'][0]
         r.hset(key, 'location', location)
         print(f"hash: {r.hgetall(key)}")
+        err = attend(r.hgetall(key))
+        print(err)
         message = CHECKOUT_TEMPLATE
 
     line_bot_api.reply_message(
