@@ -31,21 +31,21 @@ LOCATION_TEMPLATE = TextSendMessage(
                 action=PostbackAction(
                     label='出社',
                     display_text='出社',
-                    data='action=locate&location=office'
+                    data='action=locate&location=1'
                 )
             ),
             QuickReplyButton(
                 action=PostbackAction(
                     label='在宅勤務',
                     display_text='在宅勤務',
-                    data='action=locate&location=fullremote'
+                    data='action=locate&location=2'
                 )
             ),
             QuickReplyButton(
                 action=PostbackAction(
                     label='在宅勤務4h未満',
                     display_text='在宅勤務4h未満',
-                    data='action=locate&location=remotelt4h'
+                    data='action=locate&location=3'
                 )
             )
         ]

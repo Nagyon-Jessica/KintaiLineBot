@@ -14,7 +14,7 @@ from templates import (ATTEND_TEMPLATE, ATTEND_TIME_TEMPLATE,
 from utils import attend
 
 app = Flask(__name__)
-r = redis.from_url(os.environ.get("REDIS_URL"))
+r = redis.from_url(os.environ.get("REDIS_URL"), decode_responses=True)
 
 #環境変数取得
 YOUR_CHANNEL_ACCESS_TOKEN = os.environ["YOUR_CHANNEL_ACCESS_TOKEN"]
@@ -86,9 +86,12 @@ def handle_postback(event):
     elif action == "locate":
         location = params['location'][0]
         r.hset(key, 'location', location)
+        if "U9" in user_id:
+            r.hset(key, 'user', 'yagao')
+        else:
+            r.hset(key, 'user', 'konb')
         print(f"hash: {r.hgetall(key)}")
-        err = attend(r.hgetall(key))
-        print(err)
+        attend(r.hgetall(key))
         message = CHECKOUT_TEMPLATE
 
     line_bot_api.reply_message(
