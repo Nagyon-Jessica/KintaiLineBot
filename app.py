@@ -8,13 +8,15 @@ from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import (MessageEvent, PostbackEvent, TextMessage,
                             TextSendMessage)
+from rq import Queue
 
-from templates import (ATTEND_TEMPLATE, ATTEND_TIME_TEMPLATE,
-                       CHECKOUT_TEMPLATE, LOCATION_TEMPLATE)
+from templates import ATTEND_TEMPLATE, ATTEND_TIME_TEMPLATE, LOCATION_TEMPLATE
 from utils import attend
+from worker import conn
 
 app = Flask(__name__)
 r = redis.from_url(os.environ.get("REDIS_URL"), decode_responses=True)
+q = Queue(connection=conn)
 
 #環境変数取得
 YOUR_CHANNEL_ACCESS_TOKEN = os.environ["YOUR_CHANNEL_ACCESS_TOKEN"]
@@ -86,13 +88,10 @@ def handle_postback(event):
     elif action == "locate":
         location = params['location'][0]
         r.hset(key, 'location', location)
-        if "U9" in user_id:
-            r.hset(key, 'user', 'yagao')
-        else:
-            r.hset(key, 'user', 'konb')
+        r.hset(key, 'user_id', user_id)
         print(f"hash: {r.hgetall(key)}")
-        attend(r.hgetall(key))
-        message = CHECKOUT_TEMPLATE
+        q.enqueue(attend, r.hgetall(key))
+        message = TextSendMessage(text='ただいま打刻中です！このまましばらくお待ち下さい！')
 
     line_bot_api.reply_message(
         event.reply_token,

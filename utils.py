@@ -1,16 +1,25 @@
 import os
 
+from linebot import LineBotApi
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
+from templates import CHECKOUT_TEMPLATE
+
 SELENIUM_URL = os.environ.get("SELENIUM_URL")
 ID_YAGAO = os.environ.get("ID_YAGAO")
 PW_YAGAO = os.environ.get("PW_YAGAO")
 ID_KONB = os.environ.get("ID_KONB")
 PW_KONB = os.environ.get("PW_KONB")
+
+YOUR_CHANNEL_ACCESS_TOKEN = os.environ["YOUR_CHANNEL_ACCESS_TOKEN"]
+YOUR_CHANNEL_SECRET = os.environ["YOUR_CHANNEL_SECRET"]
+ALLOWED_USERS = os.environ['ALLOWED_USER'].split(';')
+
+line_bot_api = LineBotApi(YOUR_CHANNEL_ACCESS_TOKEN)
 
 def attend(hash):
     """
@@ -19,7 +28,8 @@ def attend(hash):
     options = Options()
     options.add_argument('--headless')
     driver = webdriver.Chrome(options=options)
-    if hash['user'] == 'yagao':
+    user_id = hash['user_id']
+    if "U9" in user_id:
         login(driver, True)
     else:
         login(driver, False)
@@ -28,6 +38,9 @@ def attend(hash):
     else:
         stamp(driver, True, location=hash['location'])
     driver.quit()
+    line_bot_api.push_message(
+        to=user_id,
+        messages=[CHECKOUT_TEMPLATE])
     return
 
 def login(driver, is_yagao):
