@@ -39,15 +39,21 @@ def attend(hash):
     if hash['manual'] == 'true':
         driver.get(AWTVIEW_URL)
         login(driver, user_id)
-        register(driver, True, hash['time'], hash['location'])
+        is_finished = register(driver, True, hash['time'], hash['location'])
     else:
         driver.get(HOME_URL)
         login(driver, user_id)
-        stamp(driver, True, hash['location'])
+        is_finished = stamp(driver, True, hash['location'])
     driver.quit()
+
+    if is_finished:
+        message = CHECKOUT_TEMPLATE
+    else:
+        message = TextSendMessage(text='打刻に失敗しました！\nリトライしてください！')
+
     line_bot_api.push_message(
         to=user_id,
-        messages=[CHECKOUT_TEMPLATE])
+        messages=[message])
     return
 
 def checkout(hash):
@@ -61,18 +67,21 @@ def checkout(hash):
     if 'note' in hash:
         driver.get(AWTVIEW_URL)
         login(driver, user_id)
-        register(driver, False, hash['time'], note=hash['note'])
+        is_finished = register(driver, False, hash['time'], note=hash['note'])
     else:
         if hash['manual'] == 'true':
             driver.get(AWTVIEW_URL)
             login(driver, user_id)
-            register(driver, False, hash['time'])
+            is_finished = register(driver, False, hash['time'])
         else:
             driver.get(HOME_URL)
             login(driver, user_id)
-            stamp(driver, False)
+            is_finished = stamp(driver, False)
     driver.quit()
-    message = TextSendMessage(text='打刻が完了しました！\nお疲れさまでした！')
+    if is_finished:
+        message = TextSendMessage(text='打刻が完了しました！\nお疲れさまでした！')
+    else:
+        message = TextSendMessage(text='打刻に失敗しました！\nリトライしてください！')
     line_bot_api.push_message(
         to=user_id,
         messages=[message])
@@ -112,17 +121,11 @@ def stamp(driver, is_attend, location=None):
             EC.element_to_be_clickable((By.XPATH, f"//label[@for='workLocationButton{location}']"))
         )
         driver.find_element(by=By.XPATH, value=f"//label[@for='workLocationButton{location}']").click()
-        wait.until(
-            EC.element_to_be_clickable((By.ID, "btnStInput"))
-        )
-        driver.find_element(by=By.ID, value='btnStInput').click()
+        is_finished = click_until_disabled(driver, "btnStInput")
     else:
-        wait.until(
-            EC.element_to_be_clickable((By.ID, "btnEtInput"))
-        )
-        driver.find_element(by=By.ID, value='btnEtInput').click()
+        is_finished = click_until_disabled(driver, "btnEtInput")
 
-    return
+    return is_finished
 
 def register(driver, is_attend, time, location=None, note=None):
     """
@@ -154,7 +157,8 @@ def register(driver, is_attend, time, location=None, note=None):
     else:
         input_id = 'endTime'
 
-    # 出退勤時刻を入力
+    # 出退勤時刻を入力（更新を考慮して先にclearする）
+    driver.find_element(by=By.ID, value=input_id).clear()
     driver.find_element(by=By.ID, value=input_id).send_keys(time)
 
     if is_attend:
@@ -175,8 +179,33 @@ def register(driver, is_attend, time, location=None, note=None):
         wait.until(
             EC.presence_of_element_located((By.ID, "dialogNoteText2"))
         )
+        driver.find_element(by=By.ID, value='dialogNoteText2').clear()
         driver.find_element(by=By.ID, value='dialogNoteText2').send_keys(note)
 
         # 「登録」ボタン押下
         driver.find_element(by=By.ID, value="dialogNoteOk").click()
-    return
+    return True
+
+def click_until_disabled(driver, id):
+    """
+    打刻漏れ防止の為，disabledになるまでクリックする。
+    最大5回。
+    """
+    for i in range(5):
+        print(f"click_until_disabled: {i}")
+        wait = WebDriverWait(driver, 30)
+        wait.until(
+            EC.element_to_be_clickable((By.ID, id))
+        )
+        button = driver.find_element(by=By.ID, value=id)
+        button.click()
+
+        # ロードが終わるまで待機
+        wait.until(
+            EC.invisibility_of_element_located((By.ID, "dijit_Dialog_0_underlay"))
+        )
+
+        if not button.is_enabled():
+            print("click_until_disabled: Success")
+            return True
+    return False
